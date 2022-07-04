@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/valpha1
+kind: AppProject
+metadata:
+  name: devops
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  destinations:
+    - namespace: "*"
+      server: "add the EKS server url here"
+  sourceRepos:
+    - "https://github.com/jabf0923/matic"

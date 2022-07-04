@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  # You'll usually want to add your resources to the argocd namespace.
+  namespace: argocd
+  # Add this finalizer ONLY if you want these to cascade delete.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  # Add labels to your application object.
+  labels:
+    app.kubernetes.io/instance: argocd
+spec:
+  # The project the application belongs to.
+  project: devops
+  destination:
+    namespace: argocd
+    name: in-cluster
+
+  # Source of the application manifests
+  source:
+    repoURL: https://github.com/jabf0923/matic
+    targetRevision: develop
+    path: bootstrap/argocdserver/overlays
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
