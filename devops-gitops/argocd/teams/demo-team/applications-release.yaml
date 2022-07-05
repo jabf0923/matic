@@ -1,1 +1,22 @@
-add yaml here
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-release-applications
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: argocd
+    name: in-cluster
+  project: devops
+  source:
+    path: argocd
+    directory:
+      recurse: true
+    repoURL: "git@github.com:jabf0923/matic"
+    targetRevision: release
+  # syncPolicy:
+  #   automated:
+  #     prune: true
+  #     selfHeal: true
