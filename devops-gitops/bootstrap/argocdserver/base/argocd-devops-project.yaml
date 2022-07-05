@@ -1,4 +1,4 @@
-apiVersion: argoproj.io/valpha1
+apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
   name: devops
@@ -9,6 +9,6 @@ spec:
       kind: '*'
   destinations:
     - namespace: "*"
-      server: "add the EKS server url here"
+      server: "https://kubernetes.default.svc"
   sourceRepos:
-    - "https://github.com/jabf0923/matic"
+    - "git@github.com:jabf0923/matic"
