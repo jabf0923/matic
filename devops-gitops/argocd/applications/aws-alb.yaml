@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aws-alb
+  namespace: argocd
+spec:
+  project: devops
+  source:
+    helm:
+      valueFiles:
+        - values.yaml
+    path: aws-alb
+    repoUrl: "git@github.com:jabf0923/matic"
+    targetRevision: develop
+  destination:
+    name: in-cluster
+    namespace: aws-alb
