@@ -1,2 +1,17 @@
 resources:
   - https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.17.3/controller.yaml
+  patches:
+- patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: "--key-renew-period=8760h"
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: "--update-status"
+    - op: replace
+      path: /spec/template/spec/containers/0/image
+      value: "sonatyperepo.americancentury.com:18594/bitnami/sealed-secrets-controller:v0.16.0"
+  target:
+    kind: Deployment
+    name: sealed-secrets-controller
+    namespace: kube-system
