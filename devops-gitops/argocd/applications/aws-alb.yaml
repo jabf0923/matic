@@ -3,15 +3,22 @@ kind: Application
 metadata:
   name: aws-alb
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
+  destination:
+    namespace: aws-alb
+    name: in-cluster
   project: devops
   source:
     helm:
       valueFiles:
         - values.yaml
     path: aws-alb
-    repoUrl: "git@github.com:jabf0923/matic"
+    repoURL: "git@github.com:jabf0923/matic.git"
     targetRevision: develop
-  destination:
-    name: in-cluster
-    namespace: aws-alb
+  syncPolicy:
+    # automated:
+    #   selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
