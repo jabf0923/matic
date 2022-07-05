@@ -30,3 +30,5 @@ rbac:
   # Specifies whether rbac resources should be created
   create: true
 ingressClass: alb
+# Enable cert-manager
+enableCertManager: true
