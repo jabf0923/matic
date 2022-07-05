@@ -1,1 +1,13 @@
-add vaules here
+cert-manager:
+  installCRDs: true
+  resources:
+    requests:
+      memory: 512Mi
+  webhook:
+    resources:
+      requests:
+        memory: 128Mi
+  cainjector:
+    resources:
+      requests:
+        memory: 256Mi
