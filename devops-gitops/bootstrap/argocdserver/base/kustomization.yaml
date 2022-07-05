@@ -1,13 +1,12 @@
 resources:
   - namespace.yaml
-  - htpps://raw.githubusercontent.com/argoproj/argo-cd/v2.3.4/manifests/install.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v2.3.4/manifests/install.yaml
   - argocd-devops-project.yaml
-
 patches:
--  patch: |-
+- patch: |-
     - op: add
       path: /spec/template/spec/containers/0/command/-
       value: "--insecure"
-   target:
+  target:
     kind: Deployment
     name: argocd-server
