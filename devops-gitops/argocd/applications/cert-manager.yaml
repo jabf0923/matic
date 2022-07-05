@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: cert-manager
+    name: in-cluster
+  project: devops
+  source:
+    helm:
+      valueFiles:
+        - values.yaml
+    path: cert-manager
+    repoURL: "git@github.com:jabf0923/matic.git"
+    targetRevision: develop
+  syncPolicy:
+    # automated:
+    #   selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
