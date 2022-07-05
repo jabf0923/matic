@@ -10,7 +10,7 @@ patches:
       value: "--update-status"
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: "sonatyperepo.americancentury.com:18594/bitnami/sealed-secrets-controller:v0.16.0"
+      value: "bitnami/sealed-secrets-controller:v0.16.0"
   target:
     kind: Deployment
     name: sealed-secrets-controller
