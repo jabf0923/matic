@@ -1,1 +1,18 @@
-add yaml here
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: demo
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  destinations:
+    - namespace: "demo-develop"
+      server: ""
+    - namespace: "demo-release"
+      server: ""
+    - namespace: "demo"
+      server: ""
+  sourceRepos:
+    - "git@github.com:jabf0923/matic"
