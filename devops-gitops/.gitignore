@@ -1,0 +1,4 @@
+x.gitignore
+charts
+Chart.lock
+*.tgz
