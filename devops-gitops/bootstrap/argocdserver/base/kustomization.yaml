@@ -2,7 +2,6 @@ resources:
   - namespace.yaml
   - https://raw.githubusercontent.com/argoproj/argo-cd/v2.3.4/manifests/install.yaml
   - argocd-devops-project.yaml
-  - service.yaml
   - ingress.yaml
 patches:
 - patch: |-
