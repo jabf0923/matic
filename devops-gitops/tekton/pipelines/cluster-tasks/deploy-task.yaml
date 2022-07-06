@@ -1,1 +1,54 @@
-add yaml here
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: deploy-task
+spec:
+  description: >-
+    This task deploys to k8s and checks the status of it
+  workspaces:
+    - name: source
+  params:
+    - name: pipelineRunName
+      description: passing the pipelinerun name
+    - name: deployment
+      description: The name of the deployment config in which to patch the image, will use app.name
+  steps:
+    - name: deploy
+      image: bitnami/kubectl:latest
+      resources:
+        requests:
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/usr/bin/env bash
+        kubectl rollout latest deploy/$(params.deployment);
+        echo -n "Checking status of deployment"
+        exit_code=2;
+        for((i=0;i<=75;i++)); do
+          sleep 10s;
+          kubectl rollout history deploy/$(params.deployment) > $(workspaces.source.path)/state.txt; 
+          lastLine=$(tail -2 state.txt); 
+          if [[ $lastLine =~ .*Failed* ]]; then
+            echo
+            echo "Deployment Failed";
+            exit_code=1;
+            break; 
+          elif [[ $lastLine =~ .*Complete* ]]; then 
+            echo
+            echo "Deployment Complete";
+            exit_code=0;
+            break; 
+          else
+            if [[ $((i % 30)) == 0 ]]; then
+              echo
+            fi;
+            echo -n ".";
+          fi;
+        done;
+        if [[ $exit_code == 2 ]]; then
+          echo
+          echo "Deployment did not become ready within 750s"
+        fi;
+        exit "$exit_code"
