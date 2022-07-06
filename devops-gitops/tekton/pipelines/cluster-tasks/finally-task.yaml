@@ -1,1 +1,69 @@
-add yaml here 
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: finally
+spec:
+  description: >-
+      This task will send a notification weather the pipeline failed.
+  workspaces:
+    - name: source
+      optional: true
+  params:
+    - name: appName
+    - name: pipelineRunName
+      description: pass in $(context.pipelineRun.name)
+    - name: revision
+      description: the git revision that was built from; usually the branch (develop, etc)
+    - name: releaseEnvironment
+      default: "false"
+      description: >-
+        This indicates the artifact is targeting the release environment.  It is used in determining the stories to include.
+        The value for the development environment should be false which will limit the commit scope to the last commit.
+        The value for the release environment should be true which will include all commits not merged to master.
+    - name: cluster
+      default: ""
+    - name: notificationsEnabled
+      default: "false"
+    - name: teamsChannel
+      default: ""
+    - name: allureEnabled
+      default: "false"
+    - name: mUnitEnabled
+      default: "false"
+    - name: teamName
+      default: ""    - name: send-pipeline-failure-notification
+  steps:      
+   - name: send-pipeline-failure-notification
+      image: makocchi/alpine-git-curl-jq
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/usr/bin/env sh
+        pipelineName=$(jq -r '.metadata.name' pipelineRun.json)
+        namespace=$(jq -r '.metadata.namespace' pipelineRun.json)
+        failedStep=$(jq -r '.status.taskRuns | .[] | select(.status.conditions[0].reason != "Succeeded" and .status.conditions[0].reason != "Running") | .pipelineTaskName' pipelineRun.json | sort -uf | sed -n 'H;${x;s/\n/,/g;s/^,//;p;}')
+        cluster="$(params.cluster)"
+        lastCommitter=$(git log -1 --pretty='%ae' | sort | uniq | grep '@' | sed ':a;N;$!ba;s/\n/,/g')
+        if [[ -n "$failedStep" && "$(params.notificationsEnabled)" == "true" ]]; then
+          echo "Looks like one or more tasks returned failure, continue processing the failure"
+          title="$pipelineName pipeline failed"
+          text="The $pipelineName pipeline failed in $namespace namespace"
+          link="https://console-openshift-console.apps.$cluster./k8s/ns/$namespace/tekton.dev~v1beta1~PipelineRun/$pipelineName"
+          fi
+          jsonString=$( jq -n \
+            --arg ti "$title" \
+            --arg tx "$text" \
+            --arg fs "$failedStep" \
+            --arg lc "$lastCommitter" \
+            --arg lk "$link" \
+            '{"@type": "MessageCard", "@context": "http://schema.org/extensions", "title": $ti, "text": $tx, "sections": [ { "activityTitle": "Details", "facts": [ { "name": "Failed Steps", "value": $fs }, { "name": "Link to Pipeline", "value": $lk }, { "name": "Last Committer", "value": $lc }]}]}')
+            echo $jsonString | jq .
+            httpStatus=$(curl -sLw "%{http_code}\\n" -X POST "$(params.teamsChannel)" -H "Content-Type:application/json" -d "$jsonString");
+            echo $httpStatus
+        fi
