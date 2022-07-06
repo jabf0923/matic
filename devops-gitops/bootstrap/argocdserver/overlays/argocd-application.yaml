@@ -19,7 +19,7 @@ spec:
 
   # Source of the application manifests
   source:
-    repoURL: https://github.com/jabf0923/matic
+    repoURL: "https://github.com/jabf0923/matic.git"
     targetRevision: develop
     path: bootstrap/argocdserver/overlays
   syncPolicy:
