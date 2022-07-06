@@ -1,0 +1,9 @@
+resources:
+  - ../base
+  - ssh-private-key-sealed-secret.yaml
+  - argocd-application.yaml
+  - bootstrap-devops-applications.yaml
+  - bootstrap-teams-application.yaml
+# patchesStrategicMerge:
+#   - argocd-cm.yaml
+#   - argocd-notifications-cm.yaml
