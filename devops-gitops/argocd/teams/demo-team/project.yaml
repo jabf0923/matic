@@ -9,10 +9,10 @@ spec:
       kind: '*'
   destinations:
     - namespace: "demo-develop"
-      server: ""
+      server: "https://kubernetes.default.svc"
     - namespace: "demo-release"
-      server: ""
+      server: "https://kubernetes.default.svc"
     - namespace: "demo"
-      server: ""
+      server: "https://kubernetes.default.svc"
   sourceRepos:
     - "https://github.com/jabf0923/matic.git"
