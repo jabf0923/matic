@@ -1,1 +1,32 @@
-yaml here
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: prune-pipelineruns
+spec:
+  description: >-
+    This task will prune pipelinerun history to the desired keep count
+  params:
+    - name: name
+      type: string
+      description: name of the application in k8s
+    - name: keepCount
+      description: number of runs to keep
+      type: string
+
+  steps:
+    - name: prune
+      image: quay.io/openshift/origin-cli:latest
+      resources:
+        requests:
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+      script: |
+        #!/bin/sh
+        COUNT=$(oc get pr --no-headers=true -l app.kubernetes.io/name=$(params.name) | wc -l)
+        echo "Found $COUNT pipelineruns"
+        NUM_TO_DELETE=$(expr $COUNT - $(params.keepCount))
+        echo "$NUM_TO_DELETE pipelineruns need to be pruned"
+        if [ "$COUNT" -gt "$(params.keepCount)" ]; then
+          oc get pr -l app.kubernetes.io/name=$(params.name) --sort-by=.status.startTime --no-headers=true | head -n $NUM_TO_DELETE | awk '{print $1}' | xargs -L1 oc delete pr
+        fi
