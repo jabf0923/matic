@@ -14,7 +14,7 @@ spec:
     path: argocd
     directory:
       recurse: true
-    repoURL: "git@github.com:jabf0923/matic"
+    repoURL: "https://github.com/jabf0923/matic.git"
     targetRevision: develop
   syncPolicy:
     automated:
