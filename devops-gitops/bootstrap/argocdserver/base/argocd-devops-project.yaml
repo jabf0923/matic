@@ -11,4 +11,4 @@ spec:
     - namespace: "*"
       server: "https://kubernetes.default.svc"
   sourceRepos:
-    - "git@github.com:jabf0923/matic"
+    - "https://github.com/jabf0923/matic.git"
