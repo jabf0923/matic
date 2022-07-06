@@ -1,18 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: devops-applications
+  name: bootstrap
   namespace: argocd
+  labels:
+    app.kubernetes.io/instance: argocd
 spec:
   destination:
     namespace: argocd
-    server: "https://kubernetes.default.svc"
+    name: in-cluster
   project: devops
   source:
-    path: argocd/applications
+    path: argocd/teams
+    directory:
+      recurse: true
     repoURL: "https://github.com/jabf0923/matic.git"
-    targetRevision: develop
-#   syncPolicy:
+    targetRevision: prod-cicd
+  # syncPolicy:
   #   automated:
   #     prune: true
   #     selfHeal: true
