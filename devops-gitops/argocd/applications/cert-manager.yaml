@@ -15,7 +15,7 @@ spec:
       valueFiles:
         - values.yaml
     path: cert-manager
-    repoURL: "git@github.com:jabf0923/matic.git"
+    repoURL: "https://github.com/jabf0923/matic.git"
     targetRevision: develop
   syncPolicy:
     # automated:
