@@ -1,1 +1,18 @@
-add yaml here
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: devops-applications
+  namespace: argocd
+spec:
+  destination:
+    namespace: argocd
+    server: "https://kubernetes.default.svc"
+  project: devops
+  source:
+    path: argocd/applications
+    repoURL: "https://github.com/jabf0923/matic.git"
+    targetRevision: develop
+#   syncPolicy:
+  #   automated:
+  #     prune: true
+  #     selfHeal: true
