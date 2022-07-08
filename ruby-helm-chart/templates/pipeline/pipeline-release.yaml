@@ -1,1 +1,390 @@
-enter yaml here
+{{- if and .Values.global.pipeline.enabled .Values.global.release.enabled (not .Values.global.emergency.enabled) -}}
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "react.labels" . | nindent 4 }}
+spec:
+  workspaces:
+    - name: source
+    - name: dockerfile
+      optional: true
+    - name: build-configuration-files
+      optional: true
+    - name: sonar-settings
+      optional: true
+{{- if .Values.global.pipeline.qtest.enabled }}
+    - name: qtest-settings
+{{- end }}
+  params:
+    - name: gitUrl
+      description: The git url of the source code
+    - name: gitRevision
+      description: The git revision of the source code
+    - name: image
+      description: The image repo name
+    - name: imageTag
+      description: The image tag to build and run
+      default: $(tasks.fetch-source.results.commit)
+    - name: dockerfile
+      description: The Dockerfile to build from
+      default: $(workspaces.dockerfile.path)/Dockerfile
+    - name: context
+      description: The context directory within the repo
+      default: .
+    - name: appName
+      description: Name of the application
+    - name: serviceNowURL
+      description: The service now url
+    - name: changeRequest
+      description: The change request number
+    - name: checkmarxTeamName
+      description: Name of the team within Checkmarx
+    - name: keepCount
+      description: The number of pipeline runs to keep
+    - name: scanLocation
+      description: The location that nexus iq needs to scan
+    - name: nexusIQTeamName
+      description: Name of the team who owns the application
+    - name: sonarProjectKey
+      description: The name of the application in sonarqube
+    - name: sonarSources
+      description: The directory where the sources are located in the code
+    - name: sonarTests
+      description: The directory where the tests are located in the code
+    - name: sonarExclusions
+    - name: nodeVersion
+      description: node version to use
+      default: "latest"
+    - name: yarn-install-dependencies-command
+      description: Yarn command to be run to install dependencies
+      default: "yarn"
+      description: The directory where the tests are located in the code
+    - name: yarn-build-command
+      description: Yarn command to be run for testing
+      default: "yarn run build"
+    - name: yarn-test-command
+      description: Yarn command to be run in the Yarn STAGE
+      default: "CI=true yarn test --runInBand --json --outputFile=jestResults.json"
+    - name: buildArgs
+      description: Extra build args for the buildah STAGE
+      default: ""
+      {{- if .Values.global.pipeline.wdio.enabled }}
+    - name: wdio-command
+      description: Yarn command to be run in the wdio stage
+      default: ""
+      {{- end}}
+    - name: headless-wdio
+      description: Boolean to determine whether headless wdio is enabled
+      default: "false"
+    - name: agileTeamName
+      description: Name of the agile team who owns the application
+    - name: teamName
+      description: Name of the openshift team name
+    - name: businessGroup
+      description: Name of the business group that the team belongs to
+    - name: cluster
+      description: The name of the cluster where the pipeline is running
+    - name: technology
+      description: Name of application technology
+    - name: helmChartName
+      description: Helm chart name
+    - name: helmChartVersion
+      description: Helm chart version
+    - name: releaseEnvironment
+      description: flag for the finally step to signify if this is a release pipeline
+    {{- if .Values.global.pipeline.notifications.enabled }}
+    - name: teamsChannel
+      description: URL of the webhook to your teams channel for the pipeline fun failure notification
+    {{- end }}
+    - name: gitUserEmail
+      description: Email address of the git user
+    - name: gitUserName
+      description: Username of the git user
+  tasks:
+    - name: prune-history
+      taskRef:
+        kind: ClusterTask
+        name: prune-pipelineruns
+      params:
+        - name: name
+          value: $(params.appName)
+        - name: keepCount
+          value: $(params.keepCount)
+
+    - name: fetch-source
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: url
+          value: $(params.gitUrl)
+        - name: revision
+          value: $(params.gitRevision)
+        - name: refspec
+          value: refs/heads/$(params.gitRevision):refs/heads/$(params.gitRevision)
+        - name: subdirectory
+          value: $(params.context)
+        - name: deleteExisting
+          value: "true"
+
+    - name: install-dependencies
+      taskRef:
+        kind: ClusterTask
+        name: yarn
+      workspaces:
+        - name: source
+          workspace: source
+        - name: build-configuration-files
+          workspace: build-configuration-files
+      params:
+        - name: node-version
+          value: $(params.nodeVersion)
+        - name: yarn-command
+          value: $(params.yarn-install-dependencies-command)
+      runAfter:
+        - fetch-source
+
+    - name: unit-tests
+      taskRef:
+        kind: ClusterTask
+        name: yarn
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: node-version
+          value: $(params.nodeVersion)
+        - name: yarn-command
+          value: $(params.yarn-test-command)
+      runAfter:
+        - install-dependencies
+
+    - name: codeql-scan
+      taskRef:
+        kind: ClusterTask
+        name: codeql-scan
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: url
+          value: $(params.gitUrl)
+        - name: commit-sha
+          value: $(tasks.fetch-source.results.commit)
+        - name: releaseEnvironment
+          value: $(params.releaseEnvironment)
+      runAfter:
+        - fetch-source
+
+    - name: yarn-build
+      taskRef:
+        kind: ClusterTask
+        name: yarn
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: node-version
+          value: $(params.nodeVersion)
+        - name: yarn-command
+          value: $(params.yarn-build-command)
+      runAfter:
+        - unit-tests
+
+    - name: nexus-iq-scan
+      taskRef:
+        kind: ClusterTask
+        name: nexus-iq-scan
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: APP_NAME
+          value: $(params.appName)
+        - name: NEXUS_TEAM_NAME
+          value: $(params.nexusIQTeamName)
+        - name: STAGE
+          value: "release"
+        - name: SCAN_LOCATION
+          value: $(params.scanLocation)
+      runAfter:
+        - yarn-build
+
+    - name: sonarqube-scan
+      taskRef:
+        kind: ClusterTask
+        name: sonarqube-scanner
+      workspaces:
+        - name: source
+          workspace: source
+        - name: sonar-settings
+          workspace: sonar-settings
+      params:
+        - name: SONAR_PROJECT_KEY
+          value: $(params.sonarProjectKey)
+        - name: SONAR_SOURCES
+          value: $(params.sonarSources)
+        - name: SONAR_TESTS
+          value: $(params.sonarTests)
+        - name: SONAR_EXCLUSIONS
+          value: $(params.sonarExclusions)
+      runAfter:
+        - yarn-build
+
+    - name: build-image
+      taskRef:
+        kind: ClusterTask
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: source
+        - name: dockerfile
+          workspace: dockerfile
+        - name: build-configuration-files
+          workspace: build-configuration-files
+      params:
+        - name: IMAGE
+          value: $(params.image):$(params.imageTag)
+        - name: DOCKERFILE
+          value: $(params.dockerfile)
+        - name: CONTEXT
+          value: $(params.context)
+        - name: TLSVERIFY
+          value: "false"
+        - name: BUILD_EXTRA_ARGS
+          value: $(params.buildArgs)
+      runAfter:
+        - sonarqube-scan
+        - nexus-iq-scan
+        - codeql-scan
+
+    - name: create-tag
+      taskRef:
+        kind: ClusterTask
+        name: create-tag
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: REVISION
+          value: $(params.gitRevision)
+        - name: GIT_USER_EMAIL
+          value: $(params.gitUserEmail)
+        - name: GIT_USER_NAME
+          value: $(params.gitUserName)
+      runAfter:
+        - build-image
+
+    - name: deploytask
+      taskRef:
+        kind: ClusterTask
+        name: deploy-task
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: pipelineRunName
+          value: $(context.pipelineRun.name)
+        - name: deploymentConfigName
+          value: $(params.appName)
+      runAfter:
+        - build-image
+
+{{- if .Values.global.pipeline.wdio.enabled }}
+    - name: wdio
+      taskRef:
+        kind: ClusterTask
+        name: yarn
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: node-version
+          value: $(params.nodeVersion)
+        - name: yarn-command
+          value: $(params.wdio-command)
+        - name: headless-wdio
+          value: $(params.headless-wdio)
+      runAfter:
+        - deploytask
+{{- end }}
+
+    - name: update-change-request
+      taskRef:
+        kind: ClusterTask
+        name: update-change-request
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: SERVICENOW_URL
+          value: $(params.serviceNowURL)
+        - name: CHANGE_REQUEST_NUMBER
+          value: $(params.changeRequest)
+        - name: GIT_REVISION
+          value: $(params.gitRevision)
+        - name: pipelineRunName
+          value: $(context.pipelineRun.name)
+      runAfter:
+        - deploytask
+
+
+  finally:
+    - name: finally
+      taskRef:
+        kind: ClusterTask
+        name: finally
+      workspaces:
+        - name: source
+          workspace: source
+        {{- if .Values.global.pipeline.qtest.enabled }}
+        - name: qtest-settings
+          workspace: qtest-settings
+        {{- end }}
+      params:
+        - name: pipelineRunName
+          value: $(context.pipelineRun.name)
+        - name: revision
+          value: $(params.gitRevision)
+        - name: appName
+          value: $(params.appName)
+        - name: teamName
+          value: $(params.teamName)
+        - name: productType
+          value: "React"
+        - name: cluster
+          value: $(params.cluster)
+        - name: agileTeam
+          value: $(params.agileTeamName)
+        - name: businessGroup
+          value: $(params.businessGroup)
+        - name: technology
+          value: $(params.technology)
+        - name: helmChartName
+          value: $(params.helmChartName)
+        - name: helmChartVersion
+          value: $(params.helmChartVersion)
+        - name: changeRequest
+          value: $(params.changeRequest)
+        - name: releaseEnvironment
+          value: $(params.releaseEnvironment)
+        {{- if .Values.global.pipeline.qtest.enabled }}
+        - name: qTestEnabled
+          value: "true"
+        {{- end }}
+        {{- if and .Values.global.pipeline.qtest.enabled (.Values.global.pipeline.wdio.enabled) }}
+        - name: allureEnabled
+          value: "true"
+        {{- end }}
+        {{- if .Values.global.pipeline.notifications.enabled }}
+        - name: notificationsEnabled
+          value: "true"
+        - name: teamsChannel
+          value: $(params.teamsChannel)
+        {{- end }}
+{{- end }}
