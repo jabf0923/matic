@@ -1,14 +1,3 @@
-groups:
-  # -- Name of the ad group that should have admin access to your namespace.
-  # You can add multiple groups if you need to
-  admins:
-  # -- Name of the ad group that should have developer (edit) access to your namespace.
-  #  You can add multiple groups if you need to
-  developers:
-  # -- Name of the ad group that should have observer (read only) access to your namespace.
-  # You can add multiple groups if you need to
-  observers:
-
 global:
   # -- Your team name (also the prefix of your namespace name)
   teamName:
@@ -17,18 +6,6 @@ global:
   release:
     # -- Whether this namespace is a release namespace or not, defaulted to disabled
     enabled: false
-    # -- Your venafi External or internal
-  issuerNamespace:
-    enabled: false
-  venafi:
-    external:
-      enabled: false
-      # -- The name of the folder of your team in tpp-venafi 
-      zone: AutoCertificates\cert-manager\External-CA
-    internal:
-      enabled: true
-      # -- The name of the folder of your team in tpp-venafi 
-      zone: AutoCertificates\cert-manager\Internal-CA
 
   production:
     # -- Whether this namespace is a production namespace or not, defaulted to disabled
@@ -41,16 +18,10 @@ global:
       desiredApproval: approved
       # -- The desired state of the change request before syncing can occur
       desiredState: Ready to Implement
-  istio:
-    # -- istio enabled
-    enabled: false
-    gateway:
-      # -- istio gateway enabled
-      enabled: false
 git:
   ssh:
-    # -- The teamforge host name used for the ssh private key secret
-    host: git.americancentury.collab.net:29418
+    # -- The host name used for the ssh private key secret
+    host: 
     privatekey:
       # -- The sealed secret for the ssh private key
       sealed:
@@ -61,27 +32,6 @@ nexusIQ:
     sealed:
   password:
     # -- The sealed secret for the nexus iq password for your team
-    sealed:
-
-serviceNow:
-  username:
-    # -- The sealed secret for the service now username for your team
-    sealed:
-  password:
-    # -- The sealed secret for the service now password for your team
-    sealed:
-  url:
-    # -- The service now prefix url used in the pre sync hooks
-    prefix: https://americancentury.service-now.com
-    # -- The service now endpoint for checking for approval status
-    approval: /api/acmi/v1/change/get_chg_approval?chgnum=
-
-postman:
-  # -- Whether to enable postman in the namespace or not.
-  # When enabled will add an apiKey secret for postman to the namespace
-  enabled: false
-  apiKey:
-    # -- The sealed secret for the postman api key for your team
     sealed:
 
 docker:
@@ -105,113 +55,9 @@ docker:
         # -- The sealed secret for the docker registry password for your team
         sealed:
 
-githubRelease:
-  enabled: false
-  token:
-    sealed:
-
-springboot:
-  # -- Determines if your team needs to have values/config files for springboot or not
-  enabled: false
-  truststore:
-    # -- Determines if your team needs to have the certificates for a truststore in your namespace
-    enabled: false
-    # -- The sealed secret for the truststore password
-    sealed:
-  maven:
-    # -- Location of the public maven repository for maven builds
-    mirror: https://nexus-ci-cd.apps.aciawscicdprod.0lzy.p1.openshiftapps.com/repository/maven-public
-    pvc:
-      # -- Determines if we can use a pvc for maven dependencies.
-      # For now this has to be false until we can figure out how to fix some issues
-      enabled: false
-      # -- Specifies the size of the maven pvc
-      size: 1Gi
-      # -- Determines the access mode of the maven pvc
-      accessMode: ReadWriteOnce
-      # -- Determines the type of maven pvc
-      storageClass: gp2
-
-springCloudConfig:
-  # -- Identifies if Spring Cloud Config server is enabled in this namespace
-  enabled: false
-  # -- Identifies the Spring Cloud Config server uri for the namespace
-  uri: http://not-being-used-yet
-  # -- Identifies the Spring Cloud Config active profile for the namespace
-  profilesActive: openshift
-  # -- Fail the springboot application startup if it cannot connect to the config server
-  failFast: true
-  retry:
-    # -- Number of times to retry connecting to the config server
-    maxAttempts: 10
-    # -- Initial backoff interval
-    initialInterval: 2000
-    # -- Max backoff interval
-    maxInterval: 10000
-    # -- The exponential multiplier for subsequent backoffs
-    multiplier: 3
-
-python:
+ruby:
   # -- Determines if your team needs to have values/config files for python or not
   enabled: false
-
-react:
-  # -- Determines if your team needs to have values/config files for react or not
-  enabled: false
-
-nodejs:
-  # -- Determines if your team needs to have values/config files for nodejs or not
-  enabled: false
-
-nextjs:
-  # -- Determines if your team needs to have values/config files for nextjs or not
-  enabled: false
-
-netcore:
-  # -- Determines if your team needs to have values/config files for netcore or not
-  enabled: false
-
-mulePipeline:
-  # -- Determines if your team needs to have values/config files for mule pipelines or not
-  enabled: false
-  username:
-    # -- The sealed secret value for your MuleSoft exchange username
-    sealed:
-  password:
-    # -- The sealed secret value for your MuleSoft exchange password
-    sealed:
-  anypointClientId:
-    # -- The sealed secret value for your MuleSoft anypointClientId
-    sealed:
-  anypointClientSecret:
-    # -- The sealed secret value for your MuleSoft anypointClientSecret
-    sealed:
-  secureKey:
-    # -- The sealed secret value for your MuleSoft secureKey
-    sealed:
-  runtime:
-    # -- The Mule runtime env for your namespace used for deploys
-    env:
-    # -- The Mule runtime version
-    version:
-  # -- The Mule runtime env for your namespace used for builds
-  env:
-  # -- The target Mule Runtime environment for the deployments
-  target:
-  # -- Identifies target Business Group for publishing Mule artifacts
-  businessGroup:
-
-yarn:
-  # -- The yarn registry to point to for yarn dependencies
-  registry: https://sonatyperepo.americancentury.com/repository/npm-public-cloud/
-
-npmPublish:
-  # -- Whether to enable npm publishing in the namespace or not.
-  # When enabled will add an npm token secret for npm publishing to the namespace
-  enabled: false
-  token:
-    # -- The sealed secret for the npm token
-    sealed:
 
 pipeline:
   serviceaccount:
@@ -232,243 +78,5 @@ chartpublish:
     # -- The sealed secret for the github token
     sealed:
 
-conjur:
-  # -- The array of conjur secrets to pull from Cyberark
-  secrets:
-  environment:
-    k8sSecrets: [conjur-secrets, conjur-secrets-defaults]
-    conjur:
-      # -- The conjur account for production
-      account: ACIprod
-      # -- The conjur follower url
-      applianceUrl: https://conjurf.americancentury.com
-      # -- The conjur authentication endpoint
-      authnUrl: https://conjurf.americancentury.com/api/authn-k8s/np-int
 
-qtest:
-  # -- Identifies the qtest project ID
-  projectId:
-  webhooks:
-    # -- Identifies the qtest junit webhook
-    jUnit:
-    # -- Identifies the qtest munit webhook
-    mUnit:
-    # -- Identifies the qtest postman webhook
-    postman:
-    # -- Identifies the qtest wdio webhook
-    wdio:
-    # -- Identifies the qtest jest webhook
-    jest:
-    # -- Identifies the qtest python webhook
-    python:
 
-awsCredentials:
-  # -- Whether to enable aws cli usage in the namespace or not.
-  # When enabled will add a secret for aws credentials in the namespace
-  enabled: false
-  awsAccessKeyId:
-    # -- The sealed secret for the aws access key id for your team
-    sealed:
-  awsSecretAccessKey:
-    # -- The sealed secret for the aws access key for your team
-    sealed:
-  awsSessionToken:
-    # -- The sealed secret for the aws session token for your team
-    sealed:
-  region:
-    # -- The sealed secret for the aws region for your team
-    sealed:
-
-caCertificates:
-  # -- The alias name and certificate value for the aci root certificate
-  # @default -- uses the default certificate for aci root
-  - alias: aci_root
-    certificate: |-
-      -----BEGIN CERTIFICATE-----
-      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
-      -----END CERTIFICATE-----
-  # -- The alias name and certificate value for the aci intermediate certificate
-  # @default -- uses the default certificate for aci intermediate
-  - alias: aci_intermediate
-    certificate: |-
-      -----BEGIN CERTIFICATE-----
-      MIIGoDCCBIigAwIBAgITFwAAAAZGiy7xTGBSnQAAAAAABjANBgkqhkiG9w0BAQsF
-      ADBVMRMwEQYKCZImiZPyLGQBGRYDY29tMR8wHQYKCZImiZPyLGQBGRYPYW1lcmlj
-      YW5jZW50dXJ5MR0wGwYDVQQDExRBQ0ktSW50ZXJuYWwtUm9vdC1TMjAeFw0xNjAx
-      MTEyMjMwMTJaFw0yODAxMDgyMjMwMTJaMHwxEzARBgoJkiaJk/IsZAEZFgNjb20x
-      HzAdBgoJkiaJk/IsZAEZFg9hbWVyaWNhbmNlbnR1cnkxEjAQBgoJkiaJk/IsZAEZ
-      FgJhYzEWMBQGCgmSJomT8ixkARkWBmFjc2xhbjEYMBYGA1UEAxMPQ0FJbnRlcm5h
-      bEFDSTEyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4q+brI56ib/I
-      Ql7UDu+74il1lLElOEQV11ghVsAPOUrHrg0tPZikbnoYCsfiR3MPtpP6pq3EUtXf
-      f1o8bVD4WGamek6+yNdCocNUPxapzKDFiYsiG8KbctSYm/AVFEHhyTTXIAuPA5jp
-      GvG3dfy+G7AIp/NCTzIT/xZPv6eeYXCk2aLXEJH5XxpvZt0Ww0qo07LRESAAP/6j
-      4x4IAQKb6lRn82zfvXqWolYHHInhs1mHbELzNdRJVdqYVvksiX6aARmSd1jO3K7g
-      ZnCIiLMntSGhfxuycXZDlLv9eD9hyLjbMzKgLTkBxnP/xY/hcTdNg1zjPXKNYppz
-      CiW9/zCxnQIDAQABo4ICQDCCAjwwEgYJKwYBBAGCNxUBBAUCAwEAATAjBgkrBgEE
-      AYI3FQIEFgQUiFMWZ3SRh2VyPHuYeEiFpvD9w5owHQYDVR0OBBYEFP1r8+buD5m2
-      CK9cSRNZnE+9quBtMIHCBgNVHSAEgbowgbcwVwYIKQEBAQEBAQEwSzBJBggrBgEF
-      BQcCARY9aHR0cDovL2Nwcy5hbWVyaWNhbmNlbnR1cnkuY29tL3BraS9Qb2xpY3kv
-      VVNMZWdhbFBvbGljeS5odG1sADBcBghSAgICAgICAjBQME4GCCsGAQUFBwIBFkJo
-      dHRwOi8vY3BzLmFtZXJpY2FuY2VudHVyeS5jb20vcGtpL1BvbGljeS9VU0xpbWl0
-      ZWRVc2VQb2xpY3kuaHRtbAAwPQYJKwYBBAGCNxUHBDAwLgYmKwYBBAGCNxUIg8r1
-      Goek+DbZnyGFxoR3gt+DGIEqg6i7aoSk8D8CAWQCAQMwDgYDVR0PAQH/BAQDAgGG
-      MBIGA1UdEwEB/wQIMAYBAf8CAQAwHwYDVR0jBBgwFoAU/58YBt53sItc8JL8teFF
-      gDCiLgswRgYDVR0fBD8wPTA7oDmgN4Y1aHR0cDovL2NkcC5hbWVyaWNhbmNlbnR1
-      cnkuY29tL3BraS9JbnRlcm5hbFJvb3RTMi5jcmwwUQYIKwYBBQUHAQEERTBDMEEG
-      CCsGAQUFBzAChjVodHRwOi8vY2RwLmFtZXJpY2FuY2VudHVyeS5jb20vcGtpL0lu
-      dGVybmFsUm9vdFMyLmNydDANBgkqhkiG9w0BAQsFAAOCAgEAjBALKO1Uk35WWtWM
-      8hP/6k3HdUgEZSbAFllrkcUFCJTmuEl9tLhddYbsKZ45GuaByTHCeYhofzX6Jisz
-      MLaZ2Vu07VFcO2cBdlCwOpJilTn8irwjDMVWWeQJToVorqZCVXJzJ9KlXBpE224w
-      2mg7ZKECLHWwJkQ9hK5wON3LaywnB0yRLEyt7NlbOXcXHcSGFIyR7eFEaOYrMfM+
-      V6zNuNtDFpiA2sasQ9KJ5idzOafL1+CB4fa0cyR/gn76diQCCsMi37RAuE9acjAa
-      BYM5fV8Sx6Znrgx9FBRd0OCBzPHNy4HONcHoCIdtni4jpSZCM9qcnlVQHP5tTtkj
-      qqMn/5S5Teb0LWWVZK0IsdGuqhgxOu60ewBZHeu8yybudGT0kyMeZ0kkszDVSkky
-      LS41+dlgMEUfWFHKiWV5elwI/LqU7PDDhJIr1yD0junccHzumyw1xhb8/gjPFncs
-      Bb7FXWINiWjNOUhh28NLTdJGgGCQ+M4hRle06BN+gpJLAeOF9k0g7ZUvh33EYHUO
-      uO1NZi1AHfGbn9rFAYoBf5Qd3JN9zrne0Ei3nabkwfE8/YSgeHAuEA7YRv9rKZRh
-      Q7kLS9zqS1/pHhpd2n5SvdAZ1tZcofStYNYoWilHFaJ39AahAKTIfipQM9MXuMuj
-      KssFfb7TV8dn22uPhEJPmLVZSGA=
-      -----END CERTIFICATE-----
-  # -- The alias name  and certificate value for the aci digicert root certificate
-  # @default -- uses the default certificate for aci digicert root
-  - alias: digicert_root
-    certificate: |-
-      -----BEGIN CERTIFICATE-----
-      MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh
-      MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
-      d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD
-      QTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAwMDAwMDBaMGExCzAJBgNVBAYTAlVT
-      MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j
-      b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkqhkiG
-      9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsB
-      CSDMAZOnTjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97
-      nh6Vfe63SKMI2tavegw5BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt
-      43C/dxC//AH2hdmoRBBYMql1GNXRor5H4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7P
-      T19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y7vrTC0LUq7dBMtoM1O/4
-      gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQABo2MwYTAO
-      BgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbR
-      TLtm8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUw
-      DQYJKoZIhvcNAQEFBQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/Esr
-      hMAtudXH/vTBH1jLuG2cenTnmCmrEbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg
-      06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIttep3Sp+dWOIrWcBAI+0tKIJF
-      PnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls
-      YSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk
-      CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=
-      -----END CERTIFICATE-----
-  # -- The alias name and certificate value for the aci digicert intermediate certificate
-  # @default -- uses the default certificate for aci digicert intermediate
-  - alias: digicert_intermediate
-    certificate: |-
-      -----BEGIN CERTIFICATE-----
-      MIIElDCCA3ygAwIBAgIQAf2j627KdciIQ4tyS8+8kTANBgkqhkiG9w0BAQsFADBh
-      MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
-      d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD
-      QTAeFw0xMzAzMDgxMjAwMDBaFw0yMzAzMDgxMjAwMDBaME0xCzAJBgNVBAYTAlVT
-      MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxJzAlBgNVBAMTHkRpZ2lDZXJ0IFNIQTIg
-      U2VjdXJlIFNlcnZlciBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
-      ANyuWJBNwcQwFZA1W248ghX1LFy949v/cUP6ZCWA1O4Yok3wZtAKc24RmDYXZK83
-      nf36QYSvx6+M/hpzTc8zl5CilodTgyu5pnVILR1WN3vaMTIa16yrBvSqXUu3R0bd
-      KpPDkC55gIDvEwRqFDu1m5K+wgdlTvza/P96rtxcflUxDOg5B6TXvi/TC2rSsd9f
-      /ld0Uzs1gN2ujkSYs58O09rg1/RrKatEp0tYhG2SS4HD2nOLEpdIkARFdRrdNzGX
-      kujNVA075ME/OV4uuPNcfhCOhkEAjUVmR7ChZc6gqikJTvOX6+guqw9ypzAO+sf0
-      /RR3w6RbKFfCs/mC/bdFWJsCAwEAAaOCAVowggFWMBIGA1UdEwEB/wQIMAYBAf8C
-      AQAwDgYDVR0PAQH/BAQDAgGGMDQGCCsGAQUFBwEBBCgwJjAkBggrBgEFBQcwAYYY
-      aHR0cDovL29jc3AuZGlnaWNlcnQuY29tMHsGA1UdHwR0MHIwN6A1oDOGMWh0dHA6
-      Ly9jcmwzLmRpZ2ljZXJ0LmNvbS9EaWdpQ2VydEdsb2JhbFJvb3RDQS5jcmwwN6A1
-      oDOGMWh0dHA6Ly9jcmw0LmRpZ2ljZXJ0LmNvbS9EaWdpQ2VydEdsb2JhbFJvb3RD
-      QS5jcmwwPQYDVR0gBDYwNDAyBgRVHSAAMCowKAYIKwYBBQUHAgEWHGh0dHBzOi8v
-      d3d3LmRpZ2ljZXJ0LmNvbS9DUFMwHQYDVR0OBBYEFA+AYRyCMWHVLyjnjUY4tCzh
-      xtniMB8GA1UdIwQYMBaAFAPeUDVW0Uy7ZvCj4hsbw5eyPdFVMA0GCSqGSIb3DQEB
-      CwUAA4IBAQAjPt9L0jFCpbZ+QlwaRMxp0Wi0XUvgBCFsS+JtzLHgl4+mUwnNqipl
-      5TlPHoOlblyYoiQm5vuh7ZPHLgLGTUq/sELfeNqzqPlt/yGFUzZgTHbO7Djc1lGA
-      8MXW5dRNJ2Srm8c+cftIl7gzbckTB+6WohsYFfZcTEDts8Ls/3HB40f/1LkAtDdC
-      2iDJ6m6K7hQGrn2iWZiIqBtvLfTyyRRfJs8sjX7tN8Cp1Tm5gr8ZDOo0rwAhaPit
-      c+LJMto4JQtV05od8GiG7S5BNO98pVAdvzr508EIDObtHopYJeS4d60tbvVS3bR0
-      j6tJLp07kzQoH3jOlOrHvdPJbRzeXDLz
-      -----END CERTIFICATE-----
-  - alias: DigiCertGlobalG2
-    certificate: |-
-      -----BEGIN CERTIFICATE-----
-      MIIE9DCCA9ygAwIBAgIQCF+UwC2Fe+jMFP9T7aI+KjANBgkqhkiG9w0BAQsFADBh
-      MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
-      d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBH
-      MjAeFw0yMDA5MjQwMDAwMDBaFw0zMDA5MjMyMzU5NTlaMFkxCzAJBgNVBAYTAlVT
-      MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxMzAxBgNVBAMTKkRpZ2lDZXJ0IEdsb2Jh
-      bCBHMiBUTFMgUlNBIFNIQTI1NiAyMDIwIENBMTCCASIwDQYJKoZIhvcNAQEBBQAD
-      ggEPADCCAQoCggEBAMz3EGJPprtjb+2QUlbFbSd7ehJWivH0+dbn4Y+9lavyYEEV
-      cNsSAPonCrVXOFt9slGTcZUOakGUWzUb+nv6u8W+JDD+Vu/E832X4xT1FE3LpxDy
-      FuqrIvAxIhFhaZAmunjZlx/jfWardUSVc8is/+9dCopZQ+GssjoP80j812s3wWPc
-      3kbW20X+fSP9kOhRBx5Ro1/tSUZUfyyIxfQTnJcVPAPooTncaQwywa8WV0yUR0J8
-      osicfebUTVSvQpmowQTCd5zWSOTOEeAqgJnwQ3DPP3Zr0UxJqyRewg2C/Uaoq2yT
-      zGJSQnWS+Jr6Xl6ysGHlHx+5fwmY6D36g39HaaECAwEAAaOCAa4wggGqMB0GA1Ud
-      DgQWBBR0hYDAZsffN97PvSk3qgMdvu3NFzAfBgNVHSMEGDAWgBROIlQgGJXm427m
-      D/r6uRLtBhePOTAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0lBBYwFAYIKwYBBQUHAwEG
-      CCsGAQUFBwMCMBIGA1UdEwEB/wQIMAYBAf8CAQAwdgYIKwYBBQUHAQEEajBoMCQG
-      CCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdpY2VydC5jb20wQAYIKwYBBQUHMAKG
-      NGh0dHA6Ly9jYWNlcnRzLmRpZ2ljZXJ0LmNvbS9EaWdpQ2VydEdsb2JhbFJvb3RH
-      Mi5jcnQwewYDVR0fBHQwcjA3oDWgM4YxaHR0cDovL2NybDMuZGlnaWNlcnQuY29t
-      L0RpZ2lDZXJ0R2xvYmFsUm9vdEcyLmNybDA3oDWgM4YxaHR0cDovL2NybDQuZGln
-      aWNlcnQuY29tL0RpZ2lDZXJ0R2xvYmFsUm9vdEcyLmNybDAwBgNVHSAEKTAnMAcG
-      BWeBDAEBMAgGBmeBDAECATAIBgZngQwBAgIwCAYGZ4EMAQIDMA0GCSqGSIb3DQEB
-      CwUAA4IBAQB1i8A8W+//cFxrivUh76wx5kM9gK/XVakew44YbHnT96xC34+IxZ20
-      dfPJCP2K/lHz8p0gGgQ1zvi2QXmv/8yWXpTTmh1wLqIxi/ulzH9W3xc3l7/BjUOG
-      q4xmfrnti/EPjLXUVa9ciZ7gpyptsqNjMhg7y961n4OzEQGsIA2QlxK3KZw1tdeR
-      Du9Ab21cO72h2fviyy52QNI6uyy/FgvqvQNbTpg6Ku0FUAcVkzxzOZGUWkgOxtNK
-      Aa9mObm9QjQc2wgD80D8EuiuPKuK1ftyeWSm4w5VsTuVP61gM2eKrLanXPDtWlIb
-      1GHhJRLmB7WqlLLwKPZhJl5VHPgB63dx
-      -----END CERTIFICATE-----
-  - alias: DigiCertGlobalRootG2
-    certificate: |-
-      -----BEGIN CERTIFICATE-----
-      MIIDjjCCAnagAwIBAgIQAzrx5qcRqaC7KGSxHQn65TANBgkqhkiG9w0BAQsFADBh
-      MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
-      d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBH
-      MjAeFw0xMzA4MDExMjAwMDBaFw0zODAxMTUxMjAwMDBaMGExCzAJBgNVBAYTAlVT
-      MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j
-      b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IEcyMIIBIjANBgkqhkiG
-      9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuzfNNNx7a8myaJCtSnX/RrohCgiN9RlUyfuI
-      2/Ou8jqJkTx65qsGGmvPrC3oXgkkRLpimn7Wo6h+4FR1IAWsULecYxpsMNzaHxmx
-      1x7e/dfgy5SDN67sH0NO3Xss0r0upS/kqbitOtSZpLYl6ZtrAGCSYP9PIUkY92eQ
-      q2EGnI/yuum06ZIya7XzV+hdG82MHauVBJVJ8zUtluNJbd134/tJS7SsVQepj5Wz
-      tCO7TG1F8PapspUwtP1MVYwnSlcUfIKdzXOS0xZKBgyMUNGPHgm+F6HmIcr9g+UQ
-      vIOlCsRnKPZzFBQ9RnbDhxSJITRNrw9FDKZJobq7nMWxM4MphQIDAQABo0IwQDAP
-      BgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQEAwIBhjAdBgNVHQ4EFgQUTiJUIBiV
-      5uNu5g/6+rkS7QYXjzkwDQYJKoZIhvcNAQELBQADggEBAGBnKJRvDkhj6zHd6mcY
-      1Yl9PMWLSn/pvtsrF9+wX3N3KjITOYFnQoQj8kVnNeyIv/iPsGEMNKSuIEyExtv4
-      NeF22d+mQrvHRAiGfzZ0JFrabA0UWTW98kndth/Jsw1HKj2ZL7tcu7XUIOGZX1NG
-      Fdtom/DzMNU+MeKNhJ7jitralj41E6Vf8PlwUHBHQRFXGU7Aj64GxJUTFy8bJZ91
-      8rGOmaFvE7FBcf6IKshPECBV1/MUReXgRPTqh5Uykw7+U0b6LJ3/iyK5S9kJRaTe
-      pLiaWN0bfVKfjllDiIGknibVb63dDcY3fe0Dkhvld1927jyNxF1WW6LZZm6zNTfl
-      MrY=
-      -----END CERTIFICATE-----
