@@ -1,1 +1,69 @@
-add 
+service:
+  type: ClusterIP
+  # -- Port the service will run on in OpenShift
+  port: 8080
+
+istio:
+  # -- Istio routes
+  http:
+
+# -- This host structure will populate the certificate dnsNames and the ingress hosts and tls arrays
+hosts: []
+  # - host: springboot-demo-develop.apps.sandbox.aws.americancentury.com
+  #   paths:
+  #     - path: "/"
+  #     - pathType: Exact
+
+ingress:
+  # -- Whether to create an ingress and route for this application.
+  enabled: false
+  tls:
+  # -- Whether to create a certificate for this application
+    enabled: true
+
+
+
+certificate:
+  # -- Name of the cert issuer to use to create the certificate
+  namespaceIssuer:
+    enabled: false
+  # -- The secret to store the certificate in - defaults to {{ .Release.Name }}
+  secretName:
+  subject:
+    # -- Subject countries of the certificate
+    countries:
+      - US
+  # -- Organizations to be used in the certificate request
+    organization:
+      - American Century Proprietary Holdings, Inc.
+    # -- Subject provinces of the certificate
+    provinces:
+      - Missouri
+    # -- Subject localities of the certificate
+    localities:
+      - Kansas City
+    # -- Orgzanizational Units for the certificate, usually has team name in it
+    organizationalUnits: []
+
+global:
+  serverless:
+    # -- enable this application as a serverless application
+    enabled: false
+    annotations:
+      autoscaling.knative.dev/target: '100'
+      autoscaling.knative.dev/minScale: '0'
+      autoscaling.knative.dev/maxScale: '5'
+    containerConcurrency: 0
+    timeoutSeconds:
+    traffic:
+      - latestRevision: true
+        percent: 100
+  deploymentStrategy: none
+  istio:
+    # -- istio enabled
+    enabled: false   
+  issuerNamespace:
+    enabled: false
+  venafi:
+    internal: 
+      enabled: true 
