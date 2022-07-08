@@ -1,1 +1,13 @@
-yaml
+{{- if and (not .Values.global.release.enabled) (not .Values.global.production.enabled) -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-triggers-binding
+subjects:
+- kind: ServiceAccount
+  name: pipeline
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tekton-triggers-minimal
+{{- end }}
