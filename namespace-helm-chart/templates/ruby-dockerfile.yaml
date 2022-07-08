@@ -1,1 +1,21 @@
-yaml
+{{- if and (not .Values.global.production.enabled) .Values.react.enabled -}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: react-dockerfile
+data:
+  Dockerfile: |-
+    FROM sonatyperepo.americancentury.com:18594/jboesl/docker-nginx-headers-more
+    RUN apk --no-cache add curl
+    ARG CONTEXT_PATH=/
+
+    # Copy nginx.conf file
+    COPY nginx.conf /etc/nginx/nginx.conf
+
+    # Copy all sub configuration files except nginx.conf
+    COPY [^nginx]*.conf /etc/nginx/conf.d/
+    RUN if [ "${CONTEXT_PATH}" = "/" ]; then rm -f /etc/nginx/conf.d/default-with-context-path.conf; else rm -f /etc/nginx/conf.d/default.conf && sed -i "s/~CONTEXT_PATH~/${CONTEXT_PATH}/g" /etc/nginx/conf.d/default-with-context-path.conf; fi
+
+    COPY build /usr/share/nginx/html
+    USER 1001
+{{- end }}
