@@ -1,1 +1,5 @@
-add code
+apiVersion: v2
+name: networking
+description: A Helm chart for networking components
+type: application
+version: 2.0.0
