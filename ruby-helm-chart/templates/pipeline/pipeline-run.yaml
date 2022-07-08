@@ -1,1 +1,4 @@
-enter yaml here
+{{- if and .Values.global.pipeline.enabled .Values.global.pipeline.runImmediately (not .Values.global.production.enabled) -}}
+{{- $_ := set . "isTriggered" false }}
+{{- template "pipelineruntemplate" . -}}
+{{- end }}
