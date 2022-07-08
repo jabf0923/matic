@@ -1,1 +1,11 @@
-yaml
+{{- if and (not .Values.global.release.enabled) (not .Values.global.production.enabled) -}}
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tekton-triggers-clusterrole-{{ .Release.Namespace }}
+rules:
+  # EventListeners need to be able to fetch any clustertriggerbindings
+- apiGroups: ["triggers.tekton.dev"]
+  resources: ["clustertriggerbindings", "clusterinterceptors"]
+  verbs: ["get", "list", "watch"]
+{{- end }}
