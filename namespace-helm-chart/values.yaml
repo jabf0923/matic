@@ -1,7 +1,7 @@
 global:
   # -- Your team name (also the prefix of your namespace name)
   teamName:
-  # -- The name of the cluster in which your namespace is deployed (np-int, np-ext, pint, pext)
+  # -- The name of the cluster in which your namespace is deployed 
   cluster:
   release:
     # -- Whether this namespace is a release namespace or not, defaulted to disabled
@@ -10,14 +10,14 @@ global:
   production:
     # -- Whether this namespace is a production namespace or not, defaulted to disabled
     enabled: false
-    changeRequest:
-      # -- Change Request number in Service Now. This is used when checking the change
-      # request status before syncing the namespace changes
-      number:
-      # -- The desired approval status of the change request before syncing can occur
-      desiredApproval: approved
-      # -- The desired state of the change request before syncing can occur
-      desiredState: Ready to Implement
+#     changeRequest:
+#       # -- Change Request number in Service Now. This is used when checking the change
+#       # request status before syncing the namespace changes
+#       number:
+#       # -- The desired approval status of the change request before syncing can occur
+#       desiredApproval: approved
+#       # -- The desired state of the change request before syncing can occur
+#       desiredState: Ready to Implement
 git:
   ssh:
     # -- The host name used for the ssh private key secret
@@ -25,14 +25,6 @@ git:
     privatekey:
       # -- The sealed secret for the ssh private key
       sealed:
-
-nexusIQ:
-  username:
-    # -- The sealed secret for the nexus iq username for your team
-    sealed:
-  password:
-    # -- The sealed secret for the nexus iq password for your team
-    sealed:
 
 docker:
   config:
@@ -42,7 +34,7 @@ docker:
     sealed:
     registry:
       # -- The url of our sonatyperepo instance
-      base: sonatyperepo.americancentury.com
+      base: 
       port:
         # -- The nonprod port for your team's docker registry
         nonprod:
@@ -67,16 +59,9 @@ pipeline:
     secrets:
       - name: git-ssh
       - name: docker-config
-      - name: nexus-iq-credentials
     # -- Any image pull secrets needed for the pipeline. By default we allow annonymous pulls and don't need these
     imagePullSecrets: []
 
-chartpublish:
-  # -- Enable chartpublish helm chart support
-  enabled: false
-  ghToken:
-    # -- The sealed secret for the github token
-    sealed:
 
 
 
