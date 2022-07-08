@@ -1,1 +1,10 @@
-yaml
+{{- if .Values.global.production.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docker-config
+data:
+  registry-base: {{ .Values.docker.config.registry.base }}
+  prod-port: {{ .Values.docker.config.registry.port.prod | quote}}
+  nonprod-port: {{ .Values.docker.config.registry.port.nonprod | quote}}
+{{- end }}
