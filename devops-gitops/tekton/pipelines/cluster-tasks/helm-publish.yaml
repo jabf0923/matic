@@ -1,0 +1,73 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: helm-publish
+spec:
+  description: >-
+    This task will lint - package - publish a helm chart to Nexus
+  workspaces:
+    - name: source
+  params:
+    - name: HELM_REPO_NAME
+      description: The name of the helm repo to which the chart will be published
+      type: string
+      default: "devops-helm"
+  steps:
+    - name: dep-update
+      image: sonatyperepo.americancentury.com:18594/dtzar/helm-kubectl
+      resources:
+        requests:
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+      workingDir: $(workspaces.source.path)
+      script: |
+        helm dep up .
+    - name: create-readme
+      image: jnorwood/helm-docs:v1.5.0
+      resources:
+        requests:
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+      workingDir: $(workspaces.source.path)
+      script: |
+        helm-docs --dry-run . > readme.md
+    - name: test-package-chart
+      image: sonatyperepo.americancentury.com:18594/dtzar/helm-kubectl
+      resources:
+        requests:
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+      workingDir: $(workspaces.source.path)
+      script: |
+        ChartName=$(helm package --dependency-update . | awk -F '/' '{print $NF}' | tee)
+        echo $ChartName
+        mv $ChartName package.tgz
+    - name: upload-to-nexus-repo
+      image: sonatyperepo.americancentury.com:18594/dwdraju/alpine-curl-jq
+      resources:
+        requests:
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+      workingDir: $(workspaces.source.path)
+      env:
+      - name: username
+        valueFrom:
+          secretKeyRef:
+            name: nexus-iq-credentials
+            key: username
+      - name: password
+        valueFrom:
+          secretKeyRef:
+            name: nexus-iq-credentials
+            key: password
+      script: |
+        response=$(curl -sLw "HTTPSTATUS:%{http_code}" -F file=@package.tgz -u $username:$password https://sonatyperepo.americancentury.com/service/rest/v1/components?repository=$(params.HELM_REPO_NAME))
+        httpCode=$(echo $response | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+        if [ $httpCode != '204' ]; then
+          echo $(echo $response | sed -e 's/HTTPSTATUS\:.*//g');
+          exit 1;
+        fi
