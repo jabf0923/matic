@@ -1,1 +1,9 @@
-add code
+apiVersion: v2
+name: namespace-configuration
+description: A Helm chart for Kubernetes namespace configuration
+type: application
+version: 1.0.5
+dependencies:
+  - name: conjur
+    version: 1.4.2
+    repository: https://sonatyperepo.americancentury.com/repository/devops-helm
