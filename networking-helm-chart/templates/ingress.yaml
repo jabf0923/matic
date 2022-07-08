@@ -1,1 +1,88 @@
-add
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := .Release.Name }}
+{{- $svcPort := .Values.service.port -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  {{- if eq .Values.global.deploymentStrategy "blue-green" }}
+  name: {{ .Release.Name }}-stable
+  {{- else }}
+  name: {{ .Release.Name }}
+  {{- end }}
+  labels:
+    {{- include "networking.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    {{- range .Values.hosts }}
+    - hosts:
+        - {{ .host | quote }}
+      secretName: {{ $fullName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType | default "Prefix" }}
+            backend:
+              service:
+                {{- if eq $.Values.global.deploymentStrategy "blue-green" }}
+                name: {{ $fullName }}-stable
+                {{- else }}
+                name: {{ $fullName }}
+                {{- end }}
+                port:
+                  number: {{ $svcPort }}
+          {{- end }}
+    {{- end }}
+  {{- end }}
+
+{{- if eq .Values.global.deploymentStrategy "blue-green" }}
+---
+{{- $fullName := .Release.Name }}
+{{- $svcPort := .Values.service.port -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-preview
+  labels:
+    {{- include "networking.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    {{- range .Values.hosts }}
+    {{- $hostList := splitn "." 2 .host }}
+    - hosts:
+        - {{ $hostList._0 }}-preview.{{ $hostList._1 }}
+      secretName: {{ $fullName }}-preview
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.hosts }}
+    {{- $hostList := splitn "." 2 .host }}
+    - host: {{ $hostList._0 }}-preview.{{ $hostList._1 }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ $fullName }}-preview
+                port:
+                  number: {{ $svcPort }}
+          {{- end }}
+    {{- end }}
+{{- end }}
