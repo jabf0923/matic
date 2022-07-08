@@ -1,1 +1,103 @@
-add code
+{{- if and .Values.ingress.enabled .Values.ingress.tls.enabled -}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  secretName: {{ .Values.certificate.secretName | default .Release.Name }}
+  dnsNames:
+  {{- range .Values.hosts }}
+    - {{ .host }}
+  {{- end }}
+  subject:
+    {{- with .Values.certificate.organizations }}
+    organization:
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.certificate.subject.countries }}
+    countries:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.certificate.subject.provinces }}
+    provinces:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.certificate.subject.localities }}
+    localities:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.certificate.subject.organizationalUnits }}
+    organizationalUnits:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- if .Values.global.issuerNamespace.enabled }}
+  issuerRef:
+    {{- if .Values.global.venafi.internal.enabled }}
+    name: {{ .Release.Namespace }}-venafi-internal-issuer
+    {{- else }}
+    name: {{ .Release.Namespace }}-venafi-external-issuer
+    {{- end }}   
+    kind: Issuer
+  {{- else }}
+  issuerRef:
+    {{- if .Values.global.venafi.internal.enabled }}
+    name: venafi-internal-issuer
+    {{- else }} 
+    name: venafi-external-issuer
+    {{- end }}   
+    kind: ClusterIssuer
+  {{- end }}
+{{- end }}
+    
+{{- if eq .Values.global.deploymentStrategy "blue-green" }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}-preview
+spec:
+  secretName: {{ .Values.certificate.secretName | default .Release.Name }}-preview
+  dnsNames:
+  {{- range .Values.hosts }}
+  {{- $hostList := splitn "." 2 .host }}
+    - {{ $hostList._0 }}-preview.{{ $hostList._1 }}
+  {{- end }}
+  subject:
+    {{- with .Values.certificate.organizations }}
+    organizations:
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.certificate.subject.countries }}
+    countries:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.certificate.subject.provinces }}
+    provinces:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.certificate.subject.localities }}
+    localities:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.certificate.subject.organizationalUnits }}
+    organizationalUnits:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- if .Values.global.issuerNamespace.enabled }}
+  issuerRef:
+    {{- if .Values.global.venafi.internal.enabled }}
+    name: {{ .Release.Namespace }}-venafi-internal-issuer
+    {{- else }}
+    name: {{ .Release.Namespace }}-venafi-external-issuer
+    {{- end }}   
+    kind: Issuer
+  {{- else }}
+  issuerRef:
+    {{- if .Values.global.venafi.internal.enabled }}
+    name: venafi-internal-issuer
+    {{- else }} 
+    name: venafi-external-issuer
+    {{- end }}   
+    kind: ClusterIssuer
+  {{- end }}
+{{- end }}
