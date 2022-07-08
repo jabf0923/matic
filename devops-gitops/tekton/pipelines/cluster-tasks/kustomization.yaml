@@ -7,4 +7,4 @@ resources:
   - cluster-tasks/prune-pipelineruns.yaml
   - cluster-tasks/helm-publish.yaml
   - cluster-tasks/deploy-task.yaml
-  - cluster-tasks/finally.yaml  
+  - cluster-tasks/finally.yaml
