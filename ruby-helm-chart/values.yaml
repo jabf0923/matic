@@ -1,1 +1,292 @@
-enter yaml here
+resources:
+  requests:
+    # -- CPU requests for react apps (min cpu)
+    cpu: 100m
+    # -- Memory requests for react apps (min memory)
+    memory: 128Mi
+  limits:
+    # -- CPU limits for react apps (max cpu)
+    cpu: 100m
+    # -- Memory limits for react apps (max memory)
+    memory: 128Mi
+
+VerticalPodAutoscaler:
+  # -- Specifies whether a VPA should be created
+  create: false
+  # -- this is the values of the target workload object
+  apiVersion: "apps.openshift.io/v1"
+  kind: DeploymentConfig
+  # -- this is the flag that will active the actions of VPA
+  #Off,Initial, Recreate, Auto, careful this is key sensitive
+  updatePolicy:
+    updateMode:
+  # -- This is opcional, in case that you want to do something with a specific container
+  resourcePolicy:
+    enabled: false
+    # Specify the containers you want to opt-out and set the mode to Off
+    containerPolicies:
+    - containerName:
+      mode: "Off"
+      #Off, Recreate, Auto, careful this is key sensitive
+
+# -- Triggers that drive automated deployments in response to events.  A ConfigChange trigger causes a new Deployment to be created any time the ReplicationController template changes.
+triggers:
+  - type: "ConfigChange"
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # -- If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+trigger:
+  # -- Whether to enable an event listener for the pipeline triggers.
+  # Used to trigger dev pipelines upon merge to develop branch
+  enabled: false
+
+# -- Version of node used, more precisely the tag for the Node image
+nodeVersion: 16-alpine
+
+
+pipeline:
+  serviceaccount:
+    # -- The secrets used in the pipeline service account
+    secrets:
+      - name: docker-config
+      - name: nexus-iq-credentials
+    # -- Any image pull secrets needed for the pipeline. By default we allow annonymous pulls and don't need these
+    imagePullSecrets: []
+
+global:
+  # -- The team name the application belongs to
+  teamName:
+
+  git:
+    # -- Url for the git repository for the application
+    url:
+    # -- Branch to clone on the repository for the application
+    revision: develop
+    context: .
+    ssh:
+      privatekey:
+        # -- The sealed secret for the ssh private key
+        sealed:
+      # -- The host name used for the ssh private key secret
+      host:
+
+  # -- Number of pods that should be deployed for this application in OpenShift
+  replicaCount: 1
+
+  # -- String to identify which deployment strategy to use
+  deploymentStrategy:
+  # -- Specify whether or not to pause after spinning up the preview service in blue-green deploy
+  autoPromotionEnabled:
+  # -- Canary object to hold various steps to perform during rollout
+  canary:
+  # -- Specify steps to run during canary rollout
+    steps:
+
+  autoscaling:
+    # -- Enable pod autoscaling for the application
+    enabled: false
+    # -- If autoscaling is enabled what is the min amount of pods that should be kept at all times
+    minReplicas: 1
+    # -- If autoscaling is enabled what is the max amount of pods that can be running at the same time
+    maxReplicas: 10
+    # -- Metrics defining how to trigger scaling
+    metrics: {}
+      # - type: Resource
+      #   resource:
+      #     name: cpu
+      #     target:
+      #       type: AverageValue
+      #       averageValue: 500m
+      # - type: Resource
+      #   resource:
+      #     name: memory
+      #     target:
+      #       type: Utilization
+      #       averageUtilization: 50
+    behavior: {}
+      # scaleDown:
+      #   policies:
+      #     - type: Pods
+      #       value: 4
+      #       periodSeconds: 60
+      #     - type: Percent
+      #       value: 10
+      #       periodSeconds: 60
+      #   selectPolicy: Min
+      #   stabilizationWindowSeconds: 300
+      # scaleUp:
+      #   policies:
+      #     - type: Pods
+      #       value: 5
+      #       periodSeconds: 70
+      #     - type: Percent
+      #       value: 12
+      #       periodSeconds: 80
+      #   selectPolicy: Max
+      #   stabilizationWindowSeconds: 0
+
+  image:
+    # -- Location of the docker registry that the image for the application will live in.
+    # -- registry must be set in application chart
+    registry:
+    # -- default name is empty, which will cause the .Release.Name to be used
+    # -- can specify a specific image by providing a name
+    name:
+    # -- default tag is develop, but IF a git.revision is specified it will be
+    # -- used as the image tag - in production - an image.tag MUST be specified
+    tag:
+    # -- Pull policy is set to always pull the latest image.
+    pullPolicy: Always
+
+  imagePullSecrets: [] # anonymous pulls are authorized
+
+
+  release:
+    # -- Is this a release?
+    enabled: false
+    # -- If release is enabled, then a changeRequest is required
+    changeRequest:
+    # -- Url for Service Now (set to production by default)
+    serviceNowURL: americancentury.service-now.com
+
+  emergency:
+    # -- Is this an emergency change?
+    enabled: false
+
+  production:
+    # -- Is this production?
+    enabled: false
+
+  pipeline:
+    # -- Pipelines are enabled by default
+    enabled: true
+    # -- How many pipeline runs to keep in history
+    keepCount: 1
+    # -- Default timeout for pipelines
+    timeout: 30m0s
+    # -- Default storage size for source code clones
+    source:
+      storage:
+        # -- Default storage size for source code clones
+        size: 3Gi
+    # -- Run the pipeline immediately upon provisioning
+    runImmediately: true
+    build:
+      # -- The yarn command used to build the application
+      yarnCommand: yarn run build
+    checkmarx:
+      # -- Used to enable/disable checkmarx scans in the develop pipeline.
+      # Release pipelines cannot disable checkmarx
+      enabled: true
+      # -- The team name used in Checkmarx
+      teamName:
+    nexusIQ:
+      # -- Used to enable/disable Nexus IQ scans in the develop pipeline.
+      # Release pipelines cannot disable Nexus IQ
+      enabled: true
+      # -- Location of what Nexus IQ should scan
+      scanLocation: .
+      # -- The team name (orginzation) used in Nexus IQ
+      teamName:
+    sonarqube:
+      # -- Used to enable/disable Sonarqube scans in the develop pipeline.
+      # Release pipelines cannot disable Sonarqube
+      enabled: true
+      # -- The directory where the sources are located in the code
+      sources: ./src
+      # -- The directory where the tests are located in the code
+      tests: ""
+      # -- List of exclusions that Sonarqube should ignore in code coverage percentage
+      exclusions: ""
+    unitTests:
+      # -- Whether to enable/disable the unit tests stage
+      enabled: true
+      # -- Yarn command to run for unit test task
+      command: "CI=true yarn test --runInBand --json --outputFile=jestResults.json"
+    changeRequest:
+      enabled: true
+      url:
+      number:
+    dockerfile:
+      # -- Used to enable a custom dockerfile for the application pipeline.
+      enabled: false
+    qtest:
+      # -- Used to enable sending results to qtest in the finally stage.
+      enabled: false
+    wdio:
+      enabled: false
+      command: "yarn run test:ui"
+      headless: false
+    notifications:
+      # -- Used to enable sending pipeline failure notifications to a teams channel.
+      enabled: false
+      # -- Webhook for the teams channel for the pipeline notifications.
+      teamsChannel:
+    # -- The username for the git user that is used in the pipeline
+    gitUserName:
+    # -- The email for the git user that is used in the pipeline
+    gitUserEmail:
+  nginx:
+    context:
+    # -- Weather to enable nginx
+      enabled: false
+    # -- Uses .Release.Name if not specified
+      path:
+
+  # -- No environment variable set by default - application can set specific variables in the application chart
+  env: []
+  # -- No volumes set by default - application can set specific variables in the application chart
+  volumes: []
+  # -- No volume mounted set by default - application can set specific variables in the application chart
+  volumeMounts: []
+
+  istio:
+    # -- istio enabled
+    enabled: false
+
+  metricsPostHook:
+    # -- Enable the deploy metrics
+    enabled: true
+    # -- Metrics application URL
+    url: https://teg-gateway-develop.rnpint.americancentury.com/api/metrics/deploy
+    # -- Metrics application connect-timeout
+    connectTimeout: 5
+    # -- Metrics application max-time
+    maxTime: 10
+    # -- Used for charts that don't already send deploy metrics to TaskTop.
+    # When enabled it will create a post sync hook to send metrics to TaskTop.
+    taskTop:
+      # -- TaskTop prefix url. Currently points to forum sentry
+      urlPrefix: https://acwsg.americancentury.com:8045
+      # -- TaskTop endpoint for sending deploy metrics
+      eventUri: /api/v1/artifacts/pipeline-deploy-log/c55d93b8-1b7a-477e-902a-4c1a2b017300
+      # -- TaskTop connect-timeout
+      connectTimeout: 5
+      # -- TaskTop max-time
+      maxTime: 10
